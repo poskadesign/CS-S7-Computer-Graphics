@@ -1,0 +1,21 @@
+﻿<!DOCTYPE html>
+<html lang="lt" ng-app="U1App">
+	<head>
+		<title>1 užduotis</title>
+		<script src="jquery-2.1.4.min.js"></script>
+		<script src="angular.min.js"></script>
+		<script src="script.js"></script>
+	<head>
+	<body ng-controller="U1Controller" style="text-align: center;">
+		<canvas width="700" height="700" id="canvas" style="border: 1px solid #000;"></canvas>
+		<div class="row" style="margin-top: 20px;">
+			<button ng-click="previousStep()">Žingsnis -</button>
+			<button ng-click="nextStep()">Žingsnis +</button>
+			<button ng-click="animateTransform(1)">Animuoti T1</button>
+			<button ng-click="animateTransform(2)">Animuoti T2</button>
+			<button ng-click="animateTransform(3)">Animuoti T3</button>
+			<button ng-click="animateTransform(4)">Animuoti T4</button>
+		</div>
+		<p style="font-family: sans-serif; color: #777; font-size: .95em">Autorius: Vilius Poška MIF-PS1. <a href="http://uosis.mif.vu.lt/~rimask/old/fractals/69.png"> Darbo variantas</p>
+	</body>
+</html>
