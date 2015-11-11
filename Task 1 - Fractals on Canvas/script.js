@@ -10,14 +10,12 @@ $(document).ready(function() {
 
 function draw() {
 	ctx.beginPath();
-	ctx.moveTo(0, 0);
-	ctx.lineTo(w, 0);
+	ctx.moveTo(200, 90);
+	ctx.lineTo(w, 90);
 	ctx.lineTo(w, h);
-	ctx.lineTo(w/6, h);
-	ctx.lineTo(w/6, h-h/5);
-	ctx.lineTo(w-w/4, h-h/5);
-	ctx.lineTo(w-w/4, h/3);
-	ctx.lineTo(0, h/3);
+	ctx.lineTo(w/2, h);
+	ctx.lineTo(90, h/2);
+	ctx.lineTo(90, h/3.5);
 	ctx.fill();
 }
 
@@ -53,21 +51,23 @@ function drawRecursive(step) {
 function makeTransform(i) {
 	switch (i) {
 		case 1: 
-			ctx.transform(0.5, 0, 0, 0.5, 0, 0);
+			ctx.transform(0.5, 0, 0, 0.5, h/2+60, 20);
+			ctx.rotate(90 * Math.PI / 180);
 			ctx.fillStyle = "rgb(1, 0, 0)";
 		break;
 		case 2: 
-			ctx.rotate(-90 * Math.PI / 180);
-			ctx.transform(0.5, 0, 0, 0.5, -w/2, h/2);
+			ctx.rotate(0 * Math.PI / 180);
+			ctx.transform(0.5, 0, 0, 0.5, w/2, 20);
 			ctx.fillStyle = "rgb(100, 21, 1)";
 		break;
 		case 3: 
-			ctx.rotate(90 * Math.PI / 180);
-			ctx.transform(0.25, 0, 0, 0.25, w/2, -h/2);
+			ctx.rotate(-180 * Math.PI / 180);
+			ctx.transform(0.25, 0, 0, -0.25, -w/2-40, -h/2);
 			ctx.fillStyle = "rgb(45, 41, 101)";
 		break;
 		case 4: 
-			ctx.transform(-0.5, 0, 0, 0.5, w, h/2);
+			ctx.rotate(-90 * Math.PI / 180);
+			ctx.transform(-0.5, 0, 0, 0.5, -w/2+20, h/2);
 			ctx.fillStyle = "rgb(10, 101, 32)";
 		break;
 	}
