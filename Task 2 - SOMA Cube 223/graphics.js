@@ -102,7 +102,7 @@ function renderQuad(W, H) {
         W,  H,  0.0,
         -W,  H,  0.0,
         W, -H,  0.0,
-        -W, -H,  0.0
+        -W, -H,  0.0,
     ];
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
     squareVertexPositionBuffer.itemSize = 3;
@@ -127,8 +127,66 @@ function renderQuad(W, H) {
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, squareVertexPositionBuffer.numItems);
 }
 
-function renderCube() {
+function renderCube(W, H, L) {
+    gl.bindBuffer(gl.ARRAY_BUFFER, squareVertexPositionBuffer);
+    vertices = [
+        // Front face
+        -W, -H,  L,
+        W, -H,   L,
+        W,  H,   L,
+        -W,  H,  L,
 
+        // Back face
+        -W, -H, -L,
+        -W,  H, -L,
+        W,   H, -L,
+        W,  -H, -L,
+
+        // Top face
+        -W,  H, -L,
+        -W,  H,  L,
+        W,  H,   L,
+        W,  H,  -L,
+
+        // Bottom face
+        -W, -H, -L,
+        W, -H,  -L,
+        W, -H,   L,
+        -W, -H,  L,
+
+        // Right face
+        W, -H,  -L,
+        W,  H,  -L,
+        W,  H,   L,
+        W, -H,   L,
+
+        // Left face
+        -W, -H, -L,
+        -W, -H,  L,
+        -W,  H,  L,
+        -W,  H, -L
+    ];
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
+    squareVertexPositionBuffer.itemSize = 3;
+    squareVertexPositionBuffer.numItems = vertices.length / 3;
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, squareVertexColorBuffer);
+    var colors = [];
+    for (var i=0; i <  vertices.length / 3; i++) {
+        colors = colors.concat([0.4, 0.5, 1.0, 1.0]);
+    }
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW);
+    squareVertexColorBuffer.itemSize = 4;
+    squareVertexColorBuffer.numItems =  vertices.length / 3;
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, squareVertexPositionBuffer);
+    gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, squareVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, squareVertexColorBuffer);
+    gl.vertexAttribPointer(shaderProgram.vertexColorAttribute, squareVertexColorBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+    setMatrixUniforms();
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, squareVertexPositionBuffer.numItems);
 }
 
 
@@ -145,12 +203,12 @@ function drawScene() {
     mat4.translate(mvMatrix, [0, 1.0, 0.0]);
 
     mvPushMatrix();
-    mat4.rotate(mvMatrix, degToRad(rot), [0, 1, 0]);
-    renderQuad(1, 1);
+    mat4.rotate(mvMatrix, degToRad(rot), [1, 1, 0]);
+    renderCube(1, 2, 2);
     mvPopMatrix();
 
     mat4.translate(mvMatrix, [0, -3.0, 0.0]);
-    mat4.rotate(mvMatrix, degToRad(rot), [1, 1, 0]);
+    mat4.rotate(mvMatrix, degToRad(rot), [1, 0, 0]);
     renderQuad(1, 2);
 
 }
