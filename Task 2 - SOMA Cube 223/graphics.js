@@ -189,6 +189,73 @@ function renderCube(W, H, L) {
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, squareVertexPositionBuffer.numItems);
 }
 
+function somaV() {
+    mvPushMatrix();
+    mat4.rotate(mvMatrix, degToRad(rot), [1, 1, 0]);
+    renderCube(1, 2, 1);
+    mat4.translate(mvMatrix, [2.0, -1.0, 0.0]);
+    renderCube(1, 1, 1);
+    mvPopMatrix();
+}
+
+function somaL() {
+    mvPushMatrix();
+    mat4.rotate(mvMatrix, degToRad(rot), [1, 1, 0]);
+    renderCube(1, 3, 1);
+    mat4.translate(mvMatrix, [2.0, -2.0, 0.0]);
+    renderCube(1, 1, 1);
+    mvPopMatrix();
+}
+
+function somaT() {
+    mvPushMatrix();
+    mat4.rotate(mvMatrix, degToRad(rot), [1, 1, 0]);
+    renderCube(1, 3, 1);
+    mat4.translate(mvMatrix, [2.0, 0.0, 0.0]);
+    renderCube(1, 1, 1);
+    mvPopMatrix();
+}
+
+function somaZ() {
+    mvPushMatrix();
+    mat4.rotate(mvMatrix, degToRad(rot), [1, 1, 0]);
+    renderCube(1, 2, 1);
+    mat4.translate(mvMatrix, [2.0, 2.0, 0.0]);
+    renderCube(1, 2, 1);
+    mvPopMatrix();
+}
+
+function somaA() {
+    mvPushMatrix();
+    //mat4.rotate(mvMatrix, degToRad(rot), [1, 1, 0]);
+    mat4.translate(mvMatrix, [1.0, 1.0, 0.0]);
+    renderCube(1, 2, 1);
+    mat4.translate(mvMatrix, [-1.0, -1.0, 2.0]);
+    renderCube(2, 1, 1);
+    mvPopMatrix();
+}
+
+function somaB() {
+    mvPushMatrix();
+    //mat4.rotate(mvMatrix, degToRad(rot), [1, 1, 0]);
+    mat4.translate(mvMatrix, [1.0, 1.0, 0.0]);
+    renderCube(1, 2, 1);
+    mat4.translate(mvMatrix, [-2.0, -1.0, 1.0]);
+    renderCube(1, 1, 2);
+    mvPopMatrix();
+}
+
+function somaP() {
+    mvPushMatrix();
+    //mat4.rotate(mvMatrix, degToRad(rot), [1, 1, 0]);
+    mat4.translate(mvMatrix, [1.0, 1.0, 0.0]);
+    renderCube(1, 2, 1);
+    mat4.translate(mvMatrix, [0.0, -1.0, 1.0]);
+    renderCube(1, 1, 1);
+    mat4.translate(mvMatrix, [-2.0, 0.0, -1.0]);
+    renderCube(1, 1, 1);
+    mvPopMatrix();
+}
 
 function drawScene() {
     gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
@@ -198,18 +265,13 @@ function drawScene() {
 
     // first object
 
-    mat4.translate(mvMatrix, [0, 0.0, -9.0]);
+    mat4.translate(mvMatrix, [-1.0, -1.0, -10.0]);
 
-    mat4.translate(mvMatrix, [0, 1.0, 0.0]);
+    somaP();
 
-    mvPushMatrix();
-    mat4.rotate(mvMatrix, degToRad(rot), [1, 1, 0]);
-    renderCube(1, 2, 2);
-    mvPopMatrix();
-
-    mat4.translate(mvMatrix, [0, -3.0, 0.0]);
-    mat4.rotate(mvMatrix, degToRad(rot), [1, 0, 0]);
-    renderQuad(1, 2);
+    //mat4.translate(mvMatrix, [0, -3.0, 0.0]);
+    //mat4.rotate(mvMatrix, degToRad(rot), [1, 0, 0]);
+    //renderQuad(1, 2);
 
 }
 
