@@ -48,8 +48,8 @@ function getShader(gl, id) {
     return shader;
 }
 
-
 var shaderProgram;
+var colorAttribPointer;
 
 function initShaders() {
     var fragmentShader = getShader(gl, "shader-fs");
@@ -72,6 +72,11 @@ function initShaders() {
     shaderProgram.vertexColorAttribute = gl.getAttribLocation(shaderProgram, "aVertexColor");
     gl.enableVertexAttribArray(shaderProgram.vertexColorAttribute);
 
+    shaderProgram.vertexNormalAttribute = gl.getAttribLocation(shaderProgram, "aVertexNormal");
+    gl.enableVertexAttribArray(shaderProgram.vertexNormalAttribute);
+
+    colorAttribPointer = gl.getUniformLocation(shaderProgram, "uColor");
+
     shaderProgram.pMatrixUniform = gl.getUniformLocation(shaderProgram, "uPMatrix");
     shaderProgram.mvMatrixUniform = gl.getUniformLocation(shaderProgram, "uMVMatrix");
 }
@@ -89,47 +94,19 @@ var rot = 0.0;
 
 var squareVertexPositionBuffer;
 var squareVertexColorBuffer;
+var vertexNormalBuffer;
 
 function initBuffers() {
-
     squareVertexPositionBuffer = gl.createBuffer();
     squareVertexColorBuffer = gl.createBuffer();
+    vertexNormalBuffer = gl.createBuffer();
+
+    setDefaultAnimationEnds();
 }
 
-function renderQuad(W, H) {
+function renderCube(W, H, L, r, g, b) {
     gl.bindBuffer(gl.ARRAY_BUFFER, squareVertexPositionBuffer);
-    vertices = [
-        W,  H,  0.0,
-        -W,  H,  0.0,
-        W, -H,  0.0,
-        -W, -H,  0.0,
-    ];
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
-    squareVertexPositionBuffer.itemSize = 3;
-    squareVertexPositionBuffer.numItems = vertices.length / 3;
-
-    gl.bindBuffer(gl.ARRAY_BUFFER, squareVertexColorBuffer);
-    var colors = [];
-    for (var i=0; i <  vertices.length / 3; i++) {
-        colors = colors.concat([0.4, 0.5, 1.0, 1.0]);
-    }
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW);
-    squareVertexColorBuffer.itemSize = 4;
-    squareVertexColorBuffer.numItems =  vertices.length / 3;
-
-    gl.bindBuffer(gl.ARRAY_BUFFER, squareVertexPositionBuffer);
-    gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, squareVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
-
-    gl.bindBuffer(gl.ARRAY_BUFFER, squareVertexColorBuffer);
-    gl.vertexAttribPointer(shaderProgram.vertexColorAttribute, squareVertexColorBuffer.itemSize, gl.FLOAT, false, 0, 0);
-
-    setMatrixUniforms();
-    gl.drawArrays(gl.TRIANGLE_STRIP, 0, squareVertexPositionBuffer.numItems);
-}
-
-function renderCube(W, H, L) {
-    gl.bindBuffer(gl.ARRAY_BUFFER, squareVertexPositionBuffer);
-    vertices = [
+    var vertices = [
         // Front face
         -W, -H,  L,
         W, -H,   L,
@@ -170,90 +147,133 @@ function renderCube(W, H, L) {
     squareVertexPositionBuffer.itemSize = 3;
     squareVertexPositionBuffer.numItems = vertices.length / 3;
 
-    gl.bindBuffer(gl.ARRAY_BUFFER, squareVertexColorBuffer);
-    var colors = [];
-    for (var i=0; i <  vertices.length / 3; i++) {
-        colors = colors.concat([0.4, 0.5, 1.0, 1.0]);
-    }
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW);
-    squareVertexColorBuffer.itemSize = 4;
-    squareVertexColorBuffer.numItems =  vertices.length / 3;
+
+    var normals = [
+        // Front face
+        0, 0, 1,
+        0, 0, 1,
+        0, 0, 1,
+        0, 0, 1,
+
+        // Back face
+        0, 1, 0,
+        0, 1, 0,
+        0, 1, 0,
+        0, 1, 0,
+
+        // Top face
+        0, 1, 1,
+        0, 1, 1,
+        0, 1, 1,
+        0, 1, 1,
+
+        // Bottom face
+        1, 0, 0,
+        1, 0, 0,
+        1, 0, 0,
+        1, 0, 0,
+
+        // Right face
+        1, 0, 1,
+        1, 0, 1,
+        1, 0, 1,
+        1, 0, 1,
+
+        // Left face
+        1, 1, 0,
+        1, 1, 0,
+        1, 1, 0,
+        1, 1, 0
+    ];
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, vertexNormalBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(normals), gl.STATIC_DRAW);
+    vertexNormalBuffer.itemSize = 3;
+    vertexNormalBuffer.numItems = normals.length / 3;
+
+    gl.uniform4fv(colorAttribPointer, [r, g, b, 1.0]);
 
     gl.bindBuffer(gl.ARRAY_BUFFER, squareVertexPositionBuffer);
     gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, squareVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
-    gl.bindBuffer(gl.ARRAY_BUFFER, squareVertexColorBuffer);
-    gl.vertexAttribPointer(shaderProgram.vertexColorAttribute, squareVertexColorBuffer.itemSize, gl.FLOAT, false, 0, 0);
+    gl.bindBuffer(gl.ARRAY_BUFFER, vertexNormalBuffer);
+    gl.vertexAttribPointer(shaderProgram.vertexNormalAttribute, vertexNormalBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
     setMatrixUniforms();
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, squareVertexPositionBuffer.numItems);
 }
 
+// -----------------------------------------------------------------------
+// -----------------------------------------------------------------------
+// -----------------------------------------------------------------------
+// -----------------------------------------------------------------------
+// higher level implementation
+
+state = {
+    SHOW_ALL : 0,
+    CT1 : 1
+};
+
+defstate = state.SHOW_ALL;
+
 function somaV() {
     mvPushMatrix();
-    mat4.rotate(mvMatrix, degToRad(rot), [1, 1, 0]);
-    renderCube(1, 2, 1);
+    renderCube(1, 2, 1, 1, 0, 1);
     mat4.translate(mvMatrix, [2.0, -1.0, 0.0]);
-    renderCube(1, 1, 1);
+    renderCube(1, 1, 1, 1, 0, 1);
     mvPopMatrix();
 }
 
 function somaL() {
     mvPushMatrix();
-    mat4.rotate(mvMatrix, degToRad(rot), [1, 1, 0]);
-    renderCube(1, 3, 1);
+    renderCube(1, 3, 1, 1, 0, 0);
     mat4.translate(mvMatrix, [2.0, -2.0, 0.0]);
-    renderCube(1, 1, 1);
+    renderCube(1, 1, 1, 1, 0, 0);
     mvPopMatrix();
 }
 
 function somaT() {
     mvPushMatrix();
-    mat4.rotate(mvMatrix, degToRad(rot), [1, 1, 0]);
-    renderCube(1, 3, 1);
+    renderCube(1, 3, 1, 1, 1, 0);
     mat4.translate(mvMatrix, [2.0, 0.0, 0.0]);
-    renderCube(1, 1, 1);
+    renderCube(1, 1, 1, 1, 1, 0);
     mvPopMatrix();
 }
 
 function somaZ() {
     mvPushMatrix();
-    mat4.rotate(mvMatrix, degToRad(rot), [1, 1, 0]);
-    renderCube(1, 2, 1);
+    renderCube(1, 2, 1, 0, 0, 1);
     mat4.translate(mvMatrix, [2.0, 2.0, 0.0]);
-    renderCube(1, 2, 1);
+    renderCube(1, 2, 1, 0, 0, 1);
     mvPopMatrix();
 }
 
 function somaA() {
     mvPushMatrix();
-    //mat4.rotate(mvMatrix, degToRad(rot), [1, 1, 0]);
     mat4.translate(mvMatrix, [1.0, 1.0, 0.0]);
-    renderCube(1, 2, 1);
+    renderCube(1, 2, 1, 0, 1, 0);
     mat4.translate(mvMatrix, [-1.0, -1.0, 2.0]);
-    renderCube(2, 1, 1);
+    renderCube(2, 1, 1, 0, 1, 0);
     mvPopMatrix();
 }
 
 function somaB() {
     mvPushMatrix();
-    //mat4.rotate(mvMatrix, degToRad(rot), [1, 1, 0]);
     mat4.translate(mvMatrix, [1.0, 1.0, 0.0]);
-    renderCube(1, 2, 1);
+    renderCube(1, 2, 1, 0.75, 0.75, 0.75);
     mat4.translate(mvMatrix, [-2.0, -1.0, 1.0]);
-    renderCube(1, 1, 2);
+    renderCube(1, 1, 2, 0.75, 0.75, 0.75);
     mvPopMatrix();
 }
 
 function somaP() {
     mvPushMatrix();
-    //mat4.rotate(mvMatrix, degToRad(rot), [1, 1, 0]);
     mat4.translate(mvMatrix, [1.0, 1.0, 0.0]);
-    renderCube(1, 2, 1);
+    renderCube(1, 2, 1, 0, 1, 1);
     mat4.translate(mvMatrix, [0.0, -1.0, 1.0]);
-    renderCube(1, 1, 1);
+    renderCube(1, 1, 1, 0, 1, 1);
     mat4.translate(mvMatrix, [-2.0, 0.0, -1.0]);
-    renderCube(1, 1, 1);
+    renderCube(1, 1, 1, 0, 1, 1);
     mvPopMatrix();
 }
 
@@ -263,28 +283,188 @@ function drawScene() {
     mat4.perspective(45, gl.viewportWidth / gl.viewportHeight, 0.1, 100.0, pMatrix);
     mat4.identity(mvMatrix);
 
-    // first object
+    switch(defstate) {
+        case state.SHOW_ALL:
+            mat4.translate(mvMatrix, [-7.0, -6.0, -25.0]);
+            break;
+        case state.CT1:
+            mat4.translate(mvMatrix, [0, 6.0, -25.0]);
+            applyPerspectiveRot();
+            break;
+    }
 
-    mat4.translate(mvMatrix, [-1.0, -1.0, -10.0]);
+    mvPushMatrix();
 
-    somaP();
+    // V-1
+    switch (defstate) {
+        case state.SHOW_ALL:
+            applyRot();
+            somaV();
+            mvPopMatrix();
+            break;
+        case state.CT1:
+            //mvPushMatrix();
+            //somaV();
+            //mvPopMatrix();
+            break;
+    }
 
-    //mat4.translate(mvMatrix, [0, -3.0, 0.0]);
-    //mat4.rotate(mvMatrix, degToRad(rot), [1, 0, 0]);
-    //renderQuad(1, 2);
+    // L-2
+    switch (defstate) {
+        case state.SHOW_ALL:
+            mat4.translate(mvMatrix, [6.0, 0.0, 0.0]);
+            applyRot();
+            somaL();
+            mvPopMatrix();
+            break;
+        case state.CT1:
+            mvPushMatrix();
+            mat4.translate(mvMatrix, [-5.0, -2.0, 0.0]);
+            mat4.rotate(mvMatrix, degToRad(270),  [1, 0, 0]);
+            mat4.rotate(mvMatrix, degToRad(0), [0, 1, 0]);
+            mat4.rotate(mvMatrix, degToRad(270),  [0, 0, 1]);
+            somaL();
+            mvPopMatrix();
+            break;
+    }
 
+    // T-3
+    switch (defstate) {
+        case state.SHOW_ALL:
+            mat4.translate(mvMatrix, [6.0, 0.0, 0.0]);
+            applyRot();
+            somaT();
+            mvPopMatrix();
+            break;
+        case state.CT1:
+
+            break;
+    }
+
+    // Z-4
+    switch (defstate) {
+        case state.SHOW_ALL:
+            mat4.translate(mvMatrix, [0.0, 6.0, 0.0]);
+            applyRot();
+            somaZ();
+            mvPopMatrix();
+            break;
+        case state.CT1:
+
+            break;
+    }
+
+    // A-5
+    switch (defstate) {
+        case state.SHOW_ALL:
+            mat4.translate(mvMatrix, [-6.0, 0.0, 0.0]);
+            applyRot();
+            somaA();
+            mvPopMatrix();
+            break;
+        case state.CT1:
+            mvPushMatrix();
+            mat4.translate(mvMatrix, [-6.0, 0.0, 0.0]);
+            somaA();
+            mvPopMatrix();
+            break;
+    }
+
+    // B-6
+    switch (defstate) {
+        case state.SHOW_ALL:
+            mat4.translate(mvMatrix, [-6.0, 0.0, 0.0]);
+            applyRot();
+            somaB();
+            mvPopMatrix();
+            break;
+        case state.CT1:
+
+            break;
+    }
+
+    // P-7
+    switch (defstate) {
+        case state.SHOW_ALL:
+            mat4.translate(mvMatrix, [6.0, 6.0, 0.0]);
+            applyRot();
+            somaP();
+            mvPopMatrix();
+            break;
+        case state.CT1:
+
+            break;
+    }
+
+    mvPopMatrix();
+}
+
+function applyRot() {
+    mvPushMatrix();
+    mat4.rotate(mvMatrix, degToRad(rot), [1, 1, 1]);
+}
+
+function applyPerspectiveRot() {
+    mat4.rotate(mvMatrix, degToRad(30), [1, 0, 0]);
+    mat4.rotate(mvMatrix, degToRad(90), [0, 1, 0]);
+}
+
+var f1t = mat4.create();
+function setDefaultAnimationEnds() {
+    mat4.identity(f1t);
+    mat4.translate(f1t, [0, 0.1, 0]);
 }
 
 var lastTime = 0;
 function animate() {
+
     var timeNow = new Date().getTime();
+
     if (lastTime != 0) {
         var elapsed = timeNow - lastTime;
-
-        rot += (90 * elapsed) / 1000.0;
+        //if (defstate == state.SHOW_ALL)
+            animateAll(elapsed);
+        //else
+        //    animateConstruction(elapsed);
     }
     lastTime = timeNow;
 }
+
+function animateAll(elapsed) {
+    rot += (90 * elapsed) / 1000.0;
+}
+
+//var frac = 0;
+//var lastFrac = 0;
+//function animateConstruction(elapsed) {
+
+    //var cur = new Date().getTime() / 1000;
+    //
+    //if (lastFrac == 0) {
+    //    lastFrac = cur + 1;
+    //}
+    //
+    //frac = frac < 4 ? 1 - (lastFrac - cur) : 4;
+    //
+    //
+    //
+    //switch (defstate) {
+    //    case state.CT1:
+    //        mat4.translate(mvMatrix, [-7.0, -6.0, -25.0]);
+    //        //mvPushMatrix();
+    //        //if (frac < 4) {
+    //            mat4.translate(mvMatrix, [0, frac, 0]);
+    //        //}
+    //        //if (frac < 3) {
+    //            mat4.translate(mvMatrix, [frac, 0, 0]);
+    //        //}
+    //        somaV();
+    //        //mvPopMatrix();
+    //
+    //
+    //        break;
+    //}
+//}
 
 var mvMatrixStack = [];
 
@@ -313,8 +493,6 @@ function tick() {
     drawScene();
     animate();
 }
-
-
 
 function webGLStart() {
     var canvas = document.getElementById("lesson02-canvas");
