@@ -14,7 +14,7 @@
     varying float vLightAngle;
 
     void main(void) {
-        gl_FragColor = uColor * vLightAngle;
+        gl_FragColor = uColor * vLightAngle + vec4(0.0, 0.0, 0.0, 1.0) + uColor * 0.2;
     }
 </script>
 
@@ -29,7 +29,7 @@
 
     void main(void) {
         gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
-        vec4 transformNormal = uMVMatrix * vec4(aVertexNormal, 1.0);
+        vec4 transformNormal = vec4(aVertexNormal, 1.0) * uMVMatrix;
 
         vec3 directionalVector = vec3(0.5, 0.5, 0.5);
 
